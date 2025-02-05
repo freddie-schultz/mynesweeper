@@ -21,7 +21,7 @@ function initBoard() {
 
   setBombs()
   generateBoard()
-  displayBoard()
+  updateBoardDisplay()
 }
 
 function setBombs() {
@@ -60,7 +60,21 @@ function generateBoard() {
   }
 }
 
-function displayBoard() {
+function updateBoardDisplay() {
+  for (let i in board) {
+    if (!board[i].isHidden) {
+      if (board[i].isBomb) {
+        cellsArray[i].textContent = 'x'
+      } else {
+        if (board[i].surroundingBombs > 0) {
+          cellsArray[i].textContent = board[i].surroundingBombs
+        }
+      }
+    }
+  }
+}
+
+function revealBoard() {
   for (let i in board) {
     if (board[i].isBomb) {
       cellsArray[i].textContent = 'x'
@@ -84,9 +98,11 @@ function checkSurroundingCells(cell) {
       }
     }
   }
+
   if (cell.isBomb) {
     surroundingBombs--
   }
+
   return surroundingBombs
 }
 
@@ -102,7 +118,9 @@ function getCell(x, y) {
 }
 
 function clickCell(e) {
-  console.log(board[e.target.id].surroundingBombs)
+  e.target.setAttribute('style', 'background-color: white')
+  board[e.target.id].isHidden = false
+  updateBoardDisplay()
 }
 
 function bomblessBoard() {
@@ -113,3 +131,4 @@ function bomblessBoard() {
 
 initBoard()
 // console.log(bombIndexes)
+document.querySelector('#revealBoard').addEventListener('click', revealBoard)
