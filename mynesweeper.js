@@ -1,7 +1,7 @@
 let boardSize = 10
-let numberOfBombs = 10
+let numberOfBombs = 5
 let bombIndexes = []
-
+let gameOver = false
 let board = []
 let boardTable = document.querySelector('#board')
 let cellsArray = []
@@ -63,11 +63,23 @@ function generateBoard() {
 }
 
 function updateBoardDisplay() {
+  if (gameOver) {
+    console.log('You lose!')
+    setAllCellsVisible()
+  }
+
+  if (checkForWin()) {
+    gameOver = true
+    console.log('You win!')
+  }
+
   for (let i in board) {
     if (!board[i].isHidden) {
       if (board[i].isBomb) {
         cellsArray[i].textContent = 'x'
+        cellsArray[i].setAttribute('style', 'background-color: red')
       } else {
+        cellsArray[i].setAttribute('style', 'background-color: white')
         if (board[i].surroundingBombs > 0) {
           cellsArray[i].textContent = board[i].surroundingBombs
         }
@@ -76,16 +88,25 @@ function updateBoardDisplay() {
   }
 }
 
-function revealBoard() {
+function checkForWin() {
+  let numberOfHiddenCells = 0
   for (let i in board) {
-    if (board[i].isBomb) {
-      cellsArray[i].textContent = 'x'
-    } else {
-      if (board[i].surroundingBombs > 0) {
-        cellsArray[i].textContent = board[i].surroundingBombs
-      }
+    if (board[i].isHidden) {
+      numberOfHiddenCells++
     }
   }
+  return numberOfHiddenCells == numberOfBombs
+}
+
+function setAllCellsVisible() {
+  for (let i in board) {
+    board[i].isHidden = false
+  }
+}
+
+function revealBoard() {
+  setAllCellsVisible()
+  updateBoardDisplay()
 }
 
 function checkSurroundingCells(cell) {
@@ -134,18 +155,13 @@ function revealCell(cell) {
     return
   }
 
-  let cellElement = document.getElementById(cell.id)
-
-  if (cell.isBomb) {
-    cellElement.setAttribute('style', 'background-color: red')
-    return
-  } else {
-    cellElement.setAttribute('style', 'background-color: white')
-  }
-
   cell.isHidden = false
 
-  if (cell.surroundingBombs == 0) {
+  if (cell.isBomb) {
+    gameOver = true
+  }
+
+  if (cell.surroundingBombs == 0 && !cell.isBomb) {
     let surroundingCells = getSurroundingCells(cell)
     for (let i in surroundingCells) {
       revealCell(surroundingCells[i])
@@ -156,6 +172,10 @@ function revealCell(cell) {
 }
 
 function cellClicked(e) {
+  if (gameOver) {
+    return
+  }
+
   element = e.target
   cell = board[element.id]
 
