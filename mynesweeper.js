@@ -3,6 +3,8 @@ let numberOfBombs = 10
 let bombIndexes = []
 
 let board = []
+let boardTable = document.querySelector('#board')
+let cellsArray = []
 
 function initBoard() {
   for (x = 0; x < boardSize; x++) {
@@ -18,6 +20,8 @@ function initBoard() {
   }
 
   setBombs()
+  generateBoard()
+  displayBoard()
 }
 
 function setBombs() {
@@ -33,7 +37,73 @@ function setBombs() {
   }
 }
 
-function displayBoard() {}
+function generateBoard() {
+  let idCounter = 0
+  for (let i = 0; i < boardSize; i++) {
+    boardTable.appendChild(document.createElement('tr'))
+
+    for (let i = 0; i < boardSize; i++) {
+      let tableCell = document.createElement('td')
+      tableCell.className = 'cell'
+      tableCell.id = idCounter++
+      boardTable.lastElementChild.appendChild(tableCell)
+    }
+  }
+
+  for (let i in board) {
+    board[i].surroundingBombs = checkSurroundingCells(board[i])
+  }
+
+  cellsArray = Array.from(document.querySelectorAll('.cell'))
+  for (let i in cellsArray) {
+    cellsArray[i].addEventListener('click', clickCell)
+  }
+}
+
+function displayBoard() {
+  for (let i in board) {
+    if (board[i].isBomb) {
+      cellsArray[i].textContent = 'x'
+    } else {
+      if (board[i].surroundingBombs > 0) {
+        cellsArray[i].textContent = board[i].surroundingBombs
+      }
+    }
+  }
+}
+
+function checkSurroundingCells(cell) {
+  let surroundingBombs = 0
+  for (let x = -1; x <= 1; x++) {
+    for (let y = -1; y <= 1; y++) {
+      let checkCell = getCell(cell.x + x, cell.y + y)
+      if (checkCell != null) {
+        if (checkCell.isBomb) {
+          surroundingBombs++
+        }
+      }
+    }
+  }
+  if (cell.isBomb) {
+    surroundingBombs--
+  }
+  return surroundingBombs
+}
+
+function getCell(x, y) {
+  if (x < 0 || y < 0 || x >= boardSize || y >= boardSize) {
+    return null
+  }
+  for (let i in board) {
+    if (board[i].x == x && board[i].y == y) {
+      return board[i]
+    }
+  }
+}
+
+function clickCell(e) {
+  console.log(board[e.target.id].surroundingBombs)
+}
 
 function bomblessBoard() {
   return board.filter((cell) => {
@@ -42,6 +112,4 @@ function bomblessBoard() {
 }
 
 initBoard()
-console.log(board)
-console.log(bomblessBoard())
-console.log(bombIndexes)
+// console.log(bombIndexes)
