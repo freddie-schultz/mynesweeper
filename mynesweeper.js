@@ -1,6 +1,8 @@
-let boardSize = 10
-let numberOfBombs = 5
+let boardSize = 12
+let numberOfBombs = 15
 let bombIndexes = []
+let gameWon = false
+let gameLost = false
 let gameOver = false
 let board = []
 let boardTable = document.querySelector('#board')
@@ -64,11 +66,16 @@ function generateBoard() {
 
 function updateBoardDisplay() {
   if (gameOver) {
+    return
+  }
+
+  if (gameLost) {
     console.log('You lose!')
     setAllCellsVisible()
   }
 
   if (checkForWin()) {
+    gameWon = true
     gameOver = true
     console.log('You win!')
   }
@@ -151,14 +158,16 @@ function getSurroundingCells(cell) {
 }
 
 function revealCell(cell) {
-  if (cell.isHidden == false) {
+  if (cell.isHidden == false || gameOver) {
     return
   }
 
   cell.isHidden = false
 
   if (cell.isBomb) {
-    gameOver = true
+    gameLost = true
+    updateBoardDisplay()
+    return
   }
 
   if (cell.surroundingBombs == 0 && !cell.isBomb) {
