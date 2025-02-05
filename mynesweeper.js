@@ -1,5 +1,5 @@
 let boardSize = 10
-let numberOfBombs = 10
+let numberOfBombs = 3
 
 let gameWon = false
 let gameLost = false
@@ -100,11 +100,7 @@ function updateBoardDisplay() {
     setAllCellsVisible()
   }
 
-  if (checkForWin()) {
-    gameWon = true
-    gameOver = true
-    console.log('You win!')
-  }
+  checkForWin()
 
   for (let i in board) {
     if (!board[i].isHidden) {
@@ -134,7 +130,11 @@ function numberOfHiddenCells() {
 }
 
 function checkForWin() {
-  return numberOfHiddenCells() == numberOfBombs
+  if (numberOfHiddenCells() == numberOfBombs) {
+    gameWon = true
+    gameOver = true
+    console.log('You win!')
+  }
 }
 
 function setAllCellsVisible() {
