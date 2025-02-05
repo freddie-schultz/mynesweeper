@@ -9,11 +9,9 @@ let board = []
 let boardTable = document.querySelector('#board')
 let tableCellsArray = []
 
-// Initialize the board array with cells
-// Set bombs into cells
-// Set the surroundingBombs property for each cell
-// Create the html table
-
+// Reset global arrays
+// Reset HTML table
+// Reinitialize
 function resetGame() {
   gameWon = false
   gameLost = false
@@ -28,6 +26,10 @@ function resetGame() {
   initBoard()
 }
 
+// Initialize the board array with cells
+// Set bombs into cells
+// Set the surroundingBombs property for each cell
+// Create the HTML table
 function initBoard() {
   for (x = 0; x < boardSize; x++) {
     for (y = 0; y < boardSize; y++) {
@@ -132,9 +134,7 @@ function numberOfHiddenCells() {
 }
 
 function checkForWin() {
-  let hiddenCells = numberOfHiddenCells()
-
-  return hiddenCells == numberOfBombs
+  return numberOfHiddenCells() == numberOfBombs
 }
 
 function setAllCellsVisible() {
@@ -148,6 +148,7 @@ function revealBoard() {
   updateBoardDisplay()
 }
 
+// Returns the number of surrounding cells that are bombs
 function checkSurroundingCells(cell) {
   let surroundingBombs = 0
   let surroundingCells = getSurroundingCells(cell)
@@ -161,6 +162,7 @@ function checkSurroundingCells(cell) {
   return surroundingBombs
 }
 
+// Returns the cell object with the supplied x, y co-ordinates
 function getCell(x, y) {
   if (x < 0 || y < 0 || x >= boardSize || y >= boardSize) {
     return null
@@ -173,6 +175,7 @@ function getCell(x, y) {
   }
 }
 
+// Returns an array of cells that surround the supplied cell
 function getSurroundingCells(cell) {
   let surroundingCells = []
 
@@ -190,6 +193,8 @@ function getSurroundingCells(cell) {
   return surroundingCells
 }
 
+// Reveals the cell at the given cell index
+// Cell index is used so the game can be reset repeatedly if the first cell clicked is a bomb
 function revealCell(cellIndex) {
   let cell = board[cellIndex]
 
@@ -225,6 +230,7 @@ function revealCell(cellIndex) {
   updateBoardDisplay()
 }
 
+// Toggles a hidden cell between flagged and not flagged
 function flagCell(cell) {
   if (cell.isHidden == false || gameOver) {
     return
@@ -254,12 +260,6 @@ function getTableCellIndex(tableCell) {
 function getCellIndex(cell) {
   return board.indexOf(cell)
 }
-
-// function bomblessBoard() {
-//   return board.filter((cell) => {
-//     return cell.isBomb == false
-//   })
-// }
 
 resetGame()
 
