@@ -1,5 +1,5 @@
 let boardSize = 10
-let numberOfBombs = 99
+let numberOfBombs = 10
 
 let gameWon = false
 let gameLost = false
@@ -117,7 +117,7 @@ function updateBoardDisplay() {
       }
     } else if (board[i].isFlagged) {
       tableCellsArray[i].textContent = 'F'
-      tableCellsArray[i].setAttribute('style', 'background-color: blue')
+      tableCellsArray[i].setAttribute('style', 'background-color: #00ccff')
     } else if (!board[i].isFlagged) {
       tableCellsArray[i].textContent = ''
       tableCellsArray[i].setAttribute('style', 'background-color: green')
