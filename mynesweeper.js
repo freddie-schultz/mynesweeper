@@ -1,12 +1,32 @@
-let boardSize = 12
-let numberOfBombs = 1
-let bombIndexes = []
+let boardSize = 10
+let numberOfBombs = 99
+
 let gameWon = false
 let gameLost = false
 let gameOver = false
+
 let board = []
 let boardTable = document.querySelector('#board')
-let cellsArray = []
+let tableCellsArray = []
+
+// Initialize the board array with cells
+// Set bombs into cells
+// Set the surroundingBombs property for each cell
+// Create the html table
+
+function resetGame() {
+  gameWon = false
+  gameLost = false
+  gameOver = false
+  board = []
+  tableCellsArray = []
+
+  while (boardTable.children.length > 0) {
+    boardTable.removeChild(boardTable.childNodes[0])
+  }
+
+  initBoard()
+}
 
 function initBoard() {
   for (x = 0; x < boardSize; x++) {
@@ -22,11 +42,19 @@ function initBoard() {
   }
 
   setBombs()
-  generateBoard()
+
+  for (let i in board) {
+    board[i].surroundingBombs = checkSurroundingCells(board[i])
+  }
+
+  generateBoardInHTML()
   updateBoardDisplay()
 }
 
+// Generate an array of bomb cell indexes and set those cells to .isBomb = true
 function setBombs() {
+  let bombIndexes = []
+
   while (bombIndexes.length < numberOfBombs) {
     let randomCellIndex = Math.floor(Math.random() * board.length)
     if (!bombIndexes.includes(randomCellIndex)) {
@@ -39,7 +67,8 @@ function setBombs() {
   }
 }
 
-function generateBoard() {
+// Generate the board html table and add event listeners for every cell
+function generateBoardInHTML() {
   for (let i = 0; i < boardSize; i++) {
     boardTable.appendChild(document.createElement('tr'))
 
@@ -50,14 +79,11 @@ function generateBoard() {
     }
   }
 
-  for (let i in board) {
-    board[i].surroundingBombs = checkSurroundingCells(board[i])
-  }
+  tableCellsArray = Array.from(document.querySelectorAll('.cell'))
 
-  cellsArray = Array.from(document.querySelectorAll('.cell'))
-  for (let i in cellsArray) {
-    cellsArray[i].addEventListener('click', cellLeftClicked)
-    cellsArray[i].addEventListener('contextmenu', cellRightClicked)
+  for (let i in tableCellsArray) {
+    tableCellsArray[i].addEventListener('click', cellLeftClicked)
+    tableCellsArray[i].addEventListener('contextmenu', cellRightClicked)
   }
 }
 
@@ -68,6 +94,7 @@ function updateBoardDisplay() {
 
   if (gameLost) {
     console.log('You lose!')
+    gameOver = true
     setAllCellsVisible()
   }
 
@@ -80,33 +107,34 @@ function updateBoardDisplay() {
   for (let i in board) {
     if (!board[i].isHidden) {
       if (board[i].isBomb) {
-        cellsArray[i].textContent = 'x'
-        cellsArray[i].setAttribute('style', 'background-color: red')
+        tableCellsArray[i].textContent = 'x'
+        tableCellsArray[i].setAttribute('style', 'background-color: red')
       } else {
-        cellsArray[i].setAttribute('style', 'background-color: white')
+        tableCellsArray[i].setAttribute('style', 'background-color: white')
         if (board[i].surroundingBombs > 0) {
-          cellsArray[i].textContent = board[i].surroundingBombs
+          tableCellsArray[i].textContent = board[i].surroundingBombs
         }
       }
     } else if (board[i].isFlagged) {
-      cellsArray[i].textContent = 'F'
-      cellsArray[i].setAttribute('style', 'background-color: blue')
+      tableCellsArray[i].textContent = 'F'
+      tableCellsArray[i].setAttribute('style', 'background-color: blue')
     } else if (!board[i].isFlagged) {
-      cellsArray[i].textContent = ''
-      cellsArray[i].setAttribute('style', 'background-color: green')
+      tableCellsArray[i].textContent = ''
+      tableCellsArray[i].setAttribute('style', 'background-color: green')
     }
   }
 }
 
+function numberOfHiddenCells() {
+  return board.filter((cell) => {
+    return cell.isHidden
+  }).length
+}
+
 function checkForWin() {
-  let numberOfHiddenCells = 0
-  for (let i in board) {
-    if (board[i].isHidden) {
-      numberOfHiddenCells++
-    }
-  }
-  console.log('hidden: ' + numberOfHiddenCells + ', bombs: ' + numberOfBombs)
-  return numberOfHiddenCells == numberOfBombs
+  let hiddenCells = numberOfHiddenCells()
+
+  return hiddenCells == numberOfBombs
 }
 
 function setAllCellsVisible() {
@@ -137,6 +165,7 @@ function getCell(x, y) {
   if (x < 0 || y < 0 || x >= boardSize || y >= boardSize) {
     return null
   }
+
   for (let i in board) {
     if (board[i].x == x && board[i].y == y) {
       return board[i]
@@ -161,7 +190,19 @@ function getSurroundingCells(cell) {
   return surroundingCells
 }
 
-function revealCell(cell) {
+function revealCell(cellIndex) {
+  let cell = board[cellIndex]
+
+  // First click is a bomb
+  if (cell.isBomb && numberOfHiddenCells() == board.length) {
+    let cellIndex = getCellIndex(cell)
+    do {
+      resetGame()
+    } while (board[cellIndex].isBomb)
+  }
+
+  cell = board[cellIndex]
+
   if (cell.isHidden == false || gameOver) {
     return
   }
@@ -174,10 +215,10 @@ function revealCell(cell) {
     return
   }
 
-  if (cell.surroundingBombs == 0 && !cell.isBomb) {
+  if (cell.surroundingBombs == 0) {
     let surroundingCells = getSurroundingCells(cell)
     for (let i in surroundingCells) {
-      revealCell(surroundingCells[i])
+      revealCell(getCellIndex(surroundingCells[i]))
     }
   }
 
@@ -190,13 +231,12 @@ function flagCell(cell) {
   }
 
   cell.isFlagged = !cell.isFlagged
+
   updateBoardDisplay()
 }
 
 function cellLeftClicked(e) {
-  cell = board[getTableCellIndex(e.target)]
-
-  revealCell(cell)
+  revealCell(getTableCellIndex(e.target))
 }
 
 function cellRightClicked(e) {
@@ -208,15 +248,20 @@ function cellRightClicked(e) {
 }
 
 function getTableCellIndex(tableCell) {
-  return cellsArray.indexOf(tableCell)
+  return tableCellsArray.indexOf(tableCell)
 }
 
-function bomblessBoard() {
-  return board.filter((cell) => {
-    return cell.isBomb == false
-  })
+function getCellIndex(cell) {
+  return board.indexOf(cell)
 }
 
-initBoard()
+// function bomblessBoard() {
+//   return board.filter((cell) => {
+//     return cell.isBomb == false
+//   })
+// }
+
+resetGame()
 
 document.querySelector('#revealBoard').addEventListener('click', revealBoard)
+document.querySelector('#resetGame').addEventListener('click', resetGame)
