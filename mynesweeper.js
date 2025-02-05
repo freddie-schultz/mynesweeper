@@ -1,5 +1,5 @@
 let boardSize = 12
-let numberOfBombs = 15
+let numberOfBombs = 1
 let bombIndexes = []
 let gameWon = false
 let gameLost = false
@@ -9,7 +9,6 @@ let boardTable = document.querySelector('#board')
 let cellsArray = []
 
 function initBoard() {
-  let idCounter = 0
   for (x = 0; x < boardSize; x++) {
     for (y = 0; y < boardSize; y++) {
       let newCell = {}
@@ -18,7 +17,6 @@ function initBoard() {
       newCell.isHidden = true
       newCell.isFlagged = false
       newCell.isBomb = false
-      newCell.id = idCounter++
       board.push(newCell)
     }
   }
@@ -42,14 +40,12 @@ function setBombs() {
 }
 
 function generateBoard() {
-  let idCounter = 0
   for (let i = 0; i < boardSize; i++) {
     boardTable.appendChild(document.createElement('tr'))
 
     for (let i = 0; i < boardSize; i++) {
       let tableCell = document.createElement('td')
       tableCell.className = 'cell'
-      tableCell.id = idCounter++
       boardTable.lastElementChild.appendChild(tableCell)
     }
   }
@@ -60,7 +56,8 @@ function generateBoard() {
 
   cellsArray = Array.from(document.querySelectorAll('.cell'))
   for (let i in cellsArray) {
-    cellsArray[i].addEventListener('click', cellClicked)
+    cellsArray[i].addEventListener('click', cellLeftClicked)
+    cellsArray[i].addEventListener('contextmenu', cellRightClicked)
   }
 }
 
@@ -91,6 +88,12 @@ function updateBoardDisplay() {
           cellsArray[i].textContent = board[i].surroundingBombs
         }
       }
+    } else if (board[i].isFlagged) {
+      cellsArray[i].textContent = 'F'
+      cellsArray[i].setAttribute('style', 'background-color: blue')
+    } else if (!board[i].isFlagged) {
+      cellsArray[i].textContent = ''
+      cellsArray[i].setAttribute('style', 'background-color: green')
     }
   }
 }
@@ -102,6 +105,7 @@ function checkForWin() {
       numberOfHiddenCells++
     }
   }
+  console.log('hidden: ' + numberOfHiddenCells + ', bombs: ' + numberOfBombs)
   return numberOfHiddenCells == numberOfBombs
 }
 
@@ -180,15 +184,31 @@ function revealCell(cell) {
   updateBoardDisplay()
 }
 
-function cellClicked(e) {
-  if (gameOver) {
+function flagCell(cell) {
+  if (cell.isHidden == false || gameOver) {
     return
   }
 
-  element = e.target
-  cell = board[element.id]
+  cell.isFlagged = !cell.isFlagged
+  updateBoardDisplay()
+}
+
+function cellLeftClicked(e) {
+  cell = board[getTableCellIndex(e.target)]
 
   revealCell(cell)
+}
+
+function cellRightClicked(e) {
+  e.preventDefault()
+
+  cell = board[getTableCellIndex(e.target)]
+
+  flagCell(cell)
+}
+
+function getTableCellIndex(tableCell) {
+  return cellsArray.indexOf(tableCell)
 }
 
 function bomblessBoard() {
@@ -198,5 +218,5 @@ function bomblessBoard() {
 }
 
 initBoard()
-// console.log(bombIndexes)
+
 document.querySelector('#revealBoard').addEventListener('click', revealBoard)
