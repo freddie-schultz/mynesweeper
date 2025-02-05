@@ -7,6 +7,7 @@ let boardTable = document.querySelector('#board')
 let cellsArray = []
 
 function initBoard() {
+  let idCounter = 0
   for (x = 0; x < boardSize; x++) {
     for (y = 0; y < boardSize; y++) {
       let newCell = {}
@@ -15,6 +16,7 @@ function initBoard() {
       newCell.isHidden = true
       newCell.isFlagged = false
       newCell.isBomb = false
+      newCell.id = idCounter++
       board.push(newCell)
     }
   }
@@ -56,7 +58,7 @@ function generateBoard() {
 
   cellsArray = Array.from(document.querySelectorAll('.cell'))
   for (let i in cellsArray) {
-    cellsArray[i].addEventListener('click', clickCell)
+    cellsArray[i].addEventListener('click', cellClicked)
   }
 }
 
@@ -88,19 +90,12 @@ function revealBoard() {
 
 function checkSurroundingCells(cell) {
   let surroundingBombs = 0
-  for (let x = -1; x <= 1; x++) {
-    for (let y = -1; y <= 1; y++) {
-      let checkCell = getCell(cell.x + x, cell.y + y)
-      if (checkCell != null) {
-        if (checkCell.isBomb) {
-          surroundingBombs++
-        }
-      }
-    }
-  }
+  let surroundingCells = getSurroundingCells(cell)
 
-  if (cell.isBomb) {
-    surroundingBombs--
+  for (let i in surroundingCells) {
+    if (surroundingCells[i].isBomb) {
+      surroundingBombs++
+    }
   }
 
   return surroundingBombs
@@ -117,10 +112,54 @@ function getCell(x, y) {
   }
 }
 
-function clickCell(e) {
-  e.target.setAttribute('style', 'background-color: white')
-  board[e.target.id].isHidden = false
+function getSurroundingCells(cell) {
+  let surroundingCells = []
+
+  for (let x = -1; x <= 1; x++) {
+    for (let y = -1; y <= 1; y++) {
+      let checkCell = getCell(cell.x + x, cell.y + y)
+      if (checkCell != null) {
+        if (checkCell != cell) {
+          surroundingCells.push(checkCell)
+        }
+      }
+    }
+  }
+
+  return surroundingCells
+}
+
+function revealCell(cell) {
+  if (cell.isHidden == false) {
+    return
+  }
+
+  let cellElement = document.getElementById(cell.id)
+
+  if (cell.isBomb) {
+    cellElement.setAttribute('style', 'background-color: red')
+    return
+  } else {
+    cellElement.setAttribute('style', 'background-color: white')
+  }
+
+  cell.isHidden = false
+
+  if (cell.surroundingBombs == 0) {
+    let surroundingCells = getSurroundingCells(cell)
+    for (let i in surroundingCells) {
+      revealCell(surroundingCells[i])
+    }
+  }
+
   updateBoardDisplay()
+}
+
+function cellClicked(e) {
+  element = e.target
+  cell = board[element.id]
+
+  revealCell(cell)
 }
 
 function bomblessBoard() {
