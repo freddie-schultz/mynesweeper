@@ -1,5 +1,6 @@
-let boardSize = 10
-let numberOfBombs = 3
+let boardSizeX = 10
+let boardSizeY = 20
+let numberOfBombs = 30
 
 let gameWon = false
 let gameLost = false
@@ -31,8 +32,8 @@ function resetGame() {
 // Set the surroundingBombs property for each cell
 // Create the HTML table
 function initBoard() {
-  for (x = 0; x < boardSize; x++) {
-    for (y = 0; y < boardSize; y++) {
+  for (x = 0; x < boardSizeX; x++) {
+    for (y = 0; y < boardSizeY; y++) {
       let newCell = {}
       newCell.x = x
       newCell.y = y
@@ -71,10 +72,10 @@ function setBombs() {
 
 // Generate the board html table and add event listeners for every cell
 function generateBoardInHTML() {
-  for (let i = 0; i < boardSize; i++) {
+  for (let i = 0; i < boardSizeX; i++) {
     boardTable.appendChild(document.createElement('tr'))
 
-    for (let i = 0; i < boardSize; i++) {
+    for (let i = 0; i < boardSizeY; i++) {
       let tableCell = document.createElement('td')
       tableCell.className = 'cell'
       boardTable.lastElementChild.appendChild(tableCell)
@@ -164,7 +165,7 @@ function checkSurroundingCells(cell) {
 
 // Returns the cell object with the supplied x, y co-ordinates
 function getCell(x, y) {
-  if (x < 0 || y < 0 || x >= boardSize || y >= boardSize) {
+  if (x < 0 || y < 0 || x >= boardSizeX || y >= boardSizeY) {
     return null
   }
 
