@@ -1,6 +1,19 @@
-let boardSizeX = 10
-let boardSizeY = 20
-let numberOfBombs = 30
+let defaultBoardSizeX = 12
+let defaultBoardSizeY = 12
+let defaultNumberOfBombs = 25
+let maxResets = 1000
+
+let boardWidthInput = document.querySelector('#boardWidth')
+let boardHeightInput = document.querySelector('#boardHeight')
+let numberOfBombsInput = document.querySelector('#numberOfBombs')
+
+boardWidthInput.value = defaultBoardSizeX
+boardHeightInput.value = defaultBoardSizeY
+numberOfBombsInput.value = defaultNumberOfBombs
+
+let boardSizeX = boardWidthInput.value
+let boardSizeY = boardHeightInput.value
+let numberOfBombs = numberOfBombsInput.value
 
 let gameWon = false
 let gameLost = false
@@ -9,6 +22,34 @@ let gameOver = false
 let board = []
 let boardTable = document.querySelector('#board')
 let tableCellsArray = []
+
+function saveSettings() {
+  let boardWidthInputValue = Number(boardWidthInput.textContent)
+  let boardHeightInputValue = Number(boardHeightInput.textContent)
+  let numberOfBombsInputValue = Number(numberOfBombsInput.textContent)
+
+  console.log('width: ' + boardWidthInputValue)
+  console.log('height: ' + boardHeightInputValue)
+  console.log('bombs: ' + numberOfBombsInputValue)
+
+  if (Number.isInteger(boardWidthInputValue)) {
+    boardSizeX = boardWidthInputValue
+  } else {
+    alert('Board width must be an integer')
+  }
+
+  if (Number.isInteger(boardHeightInputValue)) {
+    boardSizeY = boardHeightInputValue
+  } else {
+    alert('Board height must be an integer')
+  }
+
+  if (Number.isInteger(numberOfBombsInputValue)) {
+    numberOfBombs = numberOfBombsInputValue
+  } else {
+    alert('Number of bombs must be an integer')
+  }
+}
 
 // Reset global arrays
 // Reset HTML table
@@ -197,17 +238,30 @@ function getSurroundingCells(cell) {
 // Reveals the cell at the given cell index
 // Cell index is used so the game can be reset repeatedly if the first cell clicked is a bomb
 function revealCell(cellIndex) {
-  let cell = board[cellIndex]
-
-  // First click is a bomb
-  if (cell.isBomb && numberOfHiddenCells() == board.length) {
-    let cellIndex = getCellIndex(cell)
-    do {
-      resetGame()
-    } while (board[cellIndex].isBomb)
+  // First click
+  if (numberOfHiddenCells() == board.length) {
+    // If first click is not a blank cell, keep resetting until it is
+    if (
+      board[cellIndex].isBomb ||
+      checkSurroundingCells(board[cellIndex]) > 0
+    ) {
+      let resetCount = 0
+      do {
+        resetGame()
+        if (resetCount++ > maxResets) {
+          alert(
+            `Error: Cannot find valid game after ${maxResets} attempts. Try using less bombs.`
+          )
+          return
+        }
+      } while (
+        board[cellIndex].isBomb ||
+        checkSurroundingCells(board[cellIndex]) > 0
+      )
+    }
   }
 
-  cell = board[cellIndex]
+  let cell = board[cellIndex]
 
   if (cell.isHidden == false || gameOver) {
     return
@@ -266,3 +320,4 @@ resetGame()
 
 document.querySelector('#revealBoard').addEventListener('click', revealBoard)
 document.querySelector('#resetGame').addEventListener('click', resetGame)
+document.querySelector('#saveSettings').addEventListener('click', saveSettings)
