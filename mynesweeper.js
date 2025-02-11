@@ -1,7 +1,12 @@
 let defaultBoardSizeX = 12
 let defaultBoardSizeY = 12
 let defaultNumberOfBombs = 25
+
 let maxResets = 1000
+let minBoardWidth = 3
+let minBoardHeight = 3
+let maxBoardWidth = 20
+let maxBoardHeight = 20
 
 let boardWidthInput = document.querySelector('#boardWidth')
 let boardHeightInput = document.querySelector('#boardHeight')
@@ -24,31 +29,57 @@ let boardTable = document.querySelector('#board')
 let tableCellsArray = []
 
 function saveSettings() {
-  let boardWidthInputValue = Number(boardWidthInput.textContent)
-  let boardHeightInputValue = Number(boardHeightInput.textContent)
-  let numberOfBombsInputValue = Number(numberOfBombsInput.textContent)
+  let boardWidthInputValue = Number(boardWidthInput.value)
+  let boardHeightInputValue = Number(boardHeightInput.value)
+  let numberOfBombsInputValue = Number(numberOfBombsInput.value)
 
   console.log('width: ' + boardWidthInputValue)
   console.log('height: ' + boardHeightInputValue)
   console.log('bombs: ' + numberOfBombsInputValue)
 
-  if (Number.isInteger(boardWidthInputValue)) {
-    boardSizeX = boardWidthInputValue
-  } else {
+  if (!Number.isInteger(boardWidthInputValue)) {
     alert('Board width must be an integer')
+    return
   }
 
-  if (Number.isInteger(boardHeightInputValue)) {
-    boardSizeY = boardHeightInputValue
-  } else {
+  if (!Number.isInteger(boardHeightInputValue)) {
     alert('Board height must be an integer')
+    return
   }
 
-  if (Number.isInteger(numberOfBombsInputValue)) {
-    numberOfBombs = numberOfBombsInputValue
-  } else {
+  if (!Number.isInteger(numberOfBombsInputValue)) {
     alert('Number of bombs must be an integer')
+    return
   }
+
+  if (
+    boardWidthInputValue > maxBoardWidth ||
+    boardWidthInputValue < minBoardWidth
+  ) {
+    alert(`Board width must be between ${minBoardWidth} and ${maxBoardWidth}`)
+    return
+  }
+
+  if (
+    boardHeightInputValue > maxBoardHeight ||
+    boardHeightInputValue < minBoardHeight
+  ) {
+    alert(
+      `Board height must be between ${minBoardHeight} and ${maxBoardHeight}`
+    )
+    return
+  }
+
+  if (numberOfBombsInputValue > boardWidthInputValue * boardHeightInputValue) {
+    alert('Too many bombs')
+    return
+  }
+
+  boardSizeX = boardWidthInputValue
+  boardSizeY = boardHeightInputValue
+  numberOfBombs = numberOfBombsInputValue
+
+  resetGame()
 }
 
 // Reset global arrays
@@ -113,10 +144,10 @@ function setBombs() {
 
 // Generate the board html table and add event listeners for every cell
 function generateBoardInHTML() {
-  for (let i = 0; i < boardSizeX; i++) {
+  for (let i = 0; i < boardSizeY; i++) {
     boardTable.appendChild(document.createElement('tr'))
 
-    for (let i = 0; i < boardSizeY; i++) {
+    for (let i = 0; i < boardSizeX; i++) {
       let tableCell = document.createElement('td')
       tableCell.className = 'cell'
       boardTable.lastElementChild.appendChild(tableCell)
@@ -250,7 +281,7 @@ function revealCell(cellIndex) {
         resetGame()
         if (resetCount++ > maxResets) {
           alert(
-            `Error: Cannot find valid game after ${maxResets} attempts. Try using less bombs.`
+            `Error: Cannot find valid game after ${maxResets} attempts. Try using less bombs or a bigger board.`
           )
           return
         }
